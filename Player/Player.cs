@@ -6,7 +6,7 @@ public class Player : KinematicBody2D
     private const float GRAVITY = 200; //"constant" downwards acceleration
     private const float JUMP_VELOCITY = 2000; //speed to apply when jumping
 
-    private const float JUMP_REDUCER = 0.4f; //when is jump released, divide the velocity by this to jump lower (only if going up)
+    private const float JUMP_REDUCER = 0.1f; //when is jump released, divide the velocity by this to jump lower (only if going up)
 
     private const float SPEED_UP = 100; //velocity to add when moving
     private const float SPEED_DOWN = 200f; //when player stops moving, this will decrease the horizontal speed;
@@ -28,6 +28,8 @@ public class Player : KinematicBody2D
     bool CanCoyoteJump => //can perform coyote jump
         !IsOnFloor() && coyote.TimeLeft > 0;
 
+    private bool ShouldBufferJump => //after landing on ground, will jump automatically if true
+        Input.IsActionPressed("jump") && buffer.TimeLeft > 0;
 
     private bool JustEnteredFloor => //IsOnFloor() changed to true during this frame
         !wasPreviouslyOnFloor && IsOnFloor();
@@ -99,7 +101,7 @@ public class Player : KinematicBody2D
         if (JustEnteredFloor)
         {
             velocity.y = 1;
-            if (buffer.TimeLeft > 0)
+            if (ShouldBufferJump)
             {
                 Jump();                
             }
@@ -142,7 +144,7 @@ public class Player : KinematicBody2D
             }
             else
             {
-                //if (Input.IsActionJustReleased("jump"))
+                if (Input.IsActionJustReleased("jump"))
                 {
                     //GD.Print("slow down");
                     velocity.y *= JUMP_REDUCER;
