@@ -3,11 +3,10 @@ using System;
 
 public class Player : KinematicBody2D
 {
-    private const float GRAVITY = 100; //"constant" downwards acceleration
-    private const float JUMP_VELOCITY = 400; //speed to apply when jumping
+    private const float GRAVITY = 200; //"constant" downwards acceleration
+    private const float JUMP_VELOCITY = 2000; //speed to apply when jumping
 
-    private const float
-        JUMP_DIVIDER = 2; //when is jump released, divide the velocity by this to jump lower (only if going up)
+    private const float JUMP_REDUCER = 0.4f; //when is jump released, divide the velocity by this to jump lower (only if going up)
 
     private const float SPEED_UP = 100; //velocity to add when moving
     private const float SPEED_DOWN = 200f; //when player stops moving, this will decrease the horizontal speed;
@@ -17,14 +16,44 @@ public class Player : KinematicBody2D
 
     private Vector2 velocity = Vector2.Zero;
     private Timer coyote;
+    private Timer buffer;
 
+    private bool wasPreviouslyOnFloor; //used to check when to activate coyote and jump buffer
+    private bool isJumping; // true only while going up after player jumped
+    private bool coyoteReady; //should the coyote start? (false if just jumped)
+
+    bool CanJump => //can start jumping during this frame 
+        IsOnFloor() || CanCoyoteJump;
+
+    bool CanCoyoteJump => //can perform coyote jump
+        !IsOnFloor() && coyote.TimeLeft > 0;
+
+
+    private bool JustEnteredFloor => //IsOnFloor() changed to true during this frame
+        !wasPreviouslyOnFloor && IsOnFloor();
+
+    private bool JustLeftFloor => //IsOnFloor() changed to false during this frame
+        wasPreviouslyOnFloor && !IsOnFloor();
+
+
+
+    void Jump()
+    {
+        velocity.y = -JUMP_VELOCITY; //maybe will be changed in future 
+        
+        isJumping = true;
+        coyoteReady = false;
+        coyote.Stop();
+        buffer.Stop();
+    }
 
     public override void _Ready()
     {
         coyote = GetNode<Timer>("Coyote");
+        buffer = GetNode<Timer>("Buffer");
     }
 
-    public override void _PhysicsProcess(float delta)
+    public override void _PhysicsProcess(float delta) 
     {
         //Player can always move horizontally (if not, then change all of this i guess)
         if (IsOnWall())
@@ -32,8 +61,13 @@ public class Player : KinematicBody2D
             velocity.x = 0;
         }
 
+        if (IsOnCeiling())
+        {
+            velocity.y = 0;
+        }
+
         bool acceleratedSideways = false;
-        
+
         if (Input.IsActionPressed("move_left") && !Input.IsActionPressed("move_right"))
         {
             velocity.x -= SPEED_UP;
@@ -50,7 +84,7 @@ public class Player : KinematicBody2D
 
 
         //Slowing down
-        if ((!acceleratedSideways)&&velocity.x != 0)
+        if ((!acceleratedSideways) && velocity.x != 0)
         {
             if (Mathf.Abs(velocity.x) > SPEED_DOWN)
             {
@@ -62,33 +96,72 @@ public class Player : KinematicBody2D
             }
         }
 
-
-        /*
-        if (Input.IsActionPressed("move_left"))
+        if (JustEnteredFloor)
         {
-            velocity.x -= SPEED;
+            velocity.y = 1;
+            if (buffer.TimeLeft > 0)
+            {
+                Jump();                
+            }
+            else
+            {
+                buffer.Stop();
+                coyoteReady = true;
+            }
         }
 
-        if (Input.IsActionPressed("move_right"))
+        if (JustLeftFloor)
         {
-            velocity.x += SPEED;
+            if (coyoteReady)
+            {
+                coyote.Start(COYOTE_TIME);
+            }
         }
-
 
         if (!IsOnFloor())
         {
             velocity.y += GRAVITY;
+            if (Input.IsActionJustPressed("jump"))
+            {
+                buffer.Start(BUFFER_TIME);
+            }
         }
-        else
-        {
-            velocity.y = 0;
-        }
-*/
 
+        if (CanJump && Input.IsActionJustPressed("jump"))
+        {
+            Jump();
+        }
+
+        GD.Print(isJumping);
+        if (isJumping)
+        {
+            //GD.Print(velocity.y);
+            if (velocity.y >= 0) //If no longer going up
+            {
+                isJumping = false;
+            }
+            else
+            {
+                //if (Input.IsActionJustReleased("jump"))
+                {
+                    //GD.Print("slow down");
+                    velocity.y *= JUMP_REDUCER;
+                    isJumping = false;
+                }
+            }
+        }
+        
+        
+        wasPreviouslyOnFloor = IsOnFloor();
         MoveAndSlide(velocity, Vector2.Up);
 
-
+/*
         GD.Print("==================");
-        GD.Print("Coyote: " + coyote.TimeLeft);
+        GD.Print("velocity.y:    " + velocity.y);
+        GD.Print("CoyoteTime:    " + coyote.TimeLeft);
+        GD.Print("BufferTime:    " + buffer.TimeLeft);
+        GD.Print("CanJump:       " + CanJump);
+        GD.Print("CanCoyoteJump: " + CanCoyoteJump);
+*/
     }
 }

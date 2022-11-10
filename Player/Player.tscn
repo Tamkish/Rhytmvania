@@ -17,3 +17,7 @@ texture = ExtResource( 1 )
 shape = SubResource( 1 )
 
 [node name="Coyote" type="Timer" parent="."]
+one_shot = true
+
+[node name="Buffer" type="Timer" parent="."]
+one_shot = true

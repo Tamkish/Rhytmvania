@@ -38,8 +38,12 @@ position = Vector2( 1004, 255 )
 scale = Vector2( -3.2027, 38.003 )
 
 [node name="Wall4" parent="." instance=ExtResource( 5 )]
-position = Vector2( 454, 394 )
-scale = Vector2( 18.9392, 1.46166 )
+position = Vector2( 510, 478 )
+scale = Vector2( 13.0192, 1.46166 )
+
+[node name="Wall5" parent="." instance=ExtResource( 5 )]
+position = Vector2( 780, 381 )
+scale = Vector2( 6.8592, 1.46166 )
 
 [node name="Player" parent="." instance=ExtResource( 6 )]
 position = Vector2( 592, 285 )
