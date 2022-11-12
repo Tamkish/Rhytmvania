@@ -48,7 +48,7 @@ public class Rhytm : Node2D
         float interval = 1 / BPS;
         GD.Print(interval);
 
-        time = 0.2f;
+        time = 0f;
     }
 
     
@@ -66,6 +66,7 @@ public class Rhytm : Node2D
         {
             icon.Pulse();
             time %= interval;
+            GetNode("../Player").Set("canDash", true);
             
         }
 
