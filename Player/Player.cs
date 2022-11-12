@@ -5,7 +5,6 @@ public class Player : KinematicBody2D
 {
     private const float GRAVITY = 200; //"constant" downwards acceleration
     private const float JUMP_VELOCITY = 2000; //speed to apply when jumping
-
     private const float JUMP_REDUCER = 0.1f; //when is jump released, divide the velocity by this to jump lower (only if going up)
 
     private const float SPEED_UP = 100; //velocity to add when moving
@@ -134,7 +133,7 @@ public class Player : KinematicBody2D
             Jump();
         }
 
-        GD.Print(isJumping);
+        //GD.Print(isJumping);
         if (isJumping)
         {
             //GD.Print(velocity.y);
