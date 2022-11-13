@@ -46,7 +46,7 @@ public class Player : KinematicBody2D
     private float dash_direction = 0;
     // private double dash_deceleration; //How fast you're slowing down during the dash
     private bool canDash; //Whether you can or can't dash right now    
-
+    private bool isDashing = false;
 
     void Jump()
     {
@@ -166,12 +166,15 @@ public class Player : KinematicBody2D
         }
         wasPreviouslyOnFloor = IsOnFloor();
 
+
+        
+
+        MoveAndSlide(velocity, Vector2.Up);
         if(canDash == true && Input.IsActionPressed("space")){ //This only triggers at the start of a dash
             Dash(delta); //Set the dash velocity to its starting speed, the function is coded below
             canDash = false;
         }
-        velocity.x += dash_velocity;
-        MoveAndSlide(velocity, Vector2.Up);
+
 /*        
         GD.Print("e");
         GD.Print("Target dash distance: " + dash_distance);
@@ -194,14 +197,18 @@ public class Player : KinematicBody2D
     {
         dash_distance = GetLocalMousePosition().x;
         if(dash_distance < 0) {dash_direction = -1;} else {dash_direction = 1;}
+        
+        /* //Start of velocity code
         if(Math.Abs(dash_distance) > MAX_DASH_DISTANCE){
             dash_velocity = MAX_DASH_DISTANCE * DASH_DURATION * dash_direction;
         } else {
             dash_velocity = dash_distance * DASH_DURATION;
         }
-        
+        */
         var dash_tween = CreateTween();
-        dash_tween.TweenProperty(GetNode("."), "dash_velocity", 0f, (float)DASH_DURATION)/*.SetTrans(Tween.EASE_IN).SetEase(2)*/;
+        dash_tween.SetTrans(Tween.TransitionType.Cubic);
+        dash_tween.SetEase(Tween.EaseType.Out);
+        dash_tween.TweenProperty(GetNode("."), "GlobalPosition.x", Position.x + dash_distance, (float)DASH_DURATION);
         
 
     
